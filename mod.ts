@@ -186,3 +186,19 @@ export async function emit(
   const { transpile } = await instantiate();
   return transpile(root.toString(), emitLoad, undefined);
 }
+
+/** Transpile TypeScript (or JavaScript) source code directly into JavaScript code, returning a promise
+ * which resolves with the transpiled JavaScript code.
+ * This treats the module source code as an isolated module, ignoring imports.
+ * 
+ * @param content TypeScript or JavaScript module source code
+ * @param options Options to use when transpiling
+ * @returns A promise which resolves with a string containing the transpiled JavaScript code
+ */
+export async function transpileIsolated(
+  content: string,
+  options: CompilerOptions = {},
+): Promise<string|undefined> {
+  const { transpile_isolated } = await instantiate();
+  return transpile_isolated(content, options);
+}

@@ -5,7 +5,7 @@ import {
   assertStringIncludes,
 } from "https://deno.land/std@0.140.0/testing/asserts.ts";
 import { join } from "https://deno.land/std@0.140.0/path/mod.ts";
-import { bundle, emit } from "./mod.ts";
+import { bundle, emit, transpileIsolated } from "./mod.ts";
 
 Deno.test({
   name: "bundle - remote",
@@ -169,5 +169,17 @@ Deno.test({
     const code = result[Object.keys(result)[0]];
     assert(code);
     assertStringIncludes(code, "export default function hello()");
+  },
+});
+
+
+Deno.test({
+  name: "transpile isolated module",
+  async fn() {
+    const content = await Deno.readTextFile("./testdata/mod.ts");
+    const result = await transpileIsolated(content);
+    console.log(result);
+    assert(result);
+    assertStringIncludes(result, "export default function hello()");
   },
 });

@@ -7,10 +7,16 @@ mod text;
 use anyhow::Result;
 use deno_graph::BuildOptions;
 use deno_graph::CapturingModuleAnalyzer;
+use deno_graph::DefaultModuleAnalyzer;
+use deno_graph::DefaultModuleParser;
+use deno_graph::ModuleAnalyzer;
 use deno_graph::ModuleGraph;
+use deno_graph::ModuleParser;
 use deno_graph::ParsedSourceStore;
 use deno_graph::ReferrerImports;
 use std::collections::HashMap;
+use std::error::Error;
+use std::sync::Arc;
 
 pub use emit::bundle_graph;
 pub use emit::BundleEmit;
@@ -86,4 +92,16 @@ pub async fn transpile(
   }
 
   Ok(map)
+}
+
+
+pub fn transpile_isolated(content: String, emit_options:EmitOptions) -> Result<String> {
+  let parser = &DefaultModuleParser {};
+  let module_specifier = ModuleSpecifier::parse("file:///mod.ts").expect("Invalid url.");
+  
+  let parsed_source = parser.parse_module(&module_specifier, Arc::from(content), deno_ast::MediaType::Mts)?;
+
+  let transpiled_source = parsed_source.transpile(&emit_options)?;
+
+  return Ok(transpiled_source.text);
 }
