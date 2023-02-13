@@ -76,6 +76,9 @@ export interface EmitOptions {
   /** The setting to use when loading sources from the Deno cache. */
   cacheSetting?: CacheSetting;
   //compilerOptions?: CompilerOptions;
+  /** The import map to use for resolving import specifiers */
+  importMap?: {imports?:Record<string,string>, scopes?:Record<string,string>};
+  importMapBaseUrl?: URL|string;
   //imports: Record<string, string[]>;
   /** Override the default loading mechanism with a custom loader. This can
    * provide a way to use "in-memory" resources instead of fetching them
@@ -177,7 +180,7 @@ export async function emit(
   options: EmitOptions = {},
 ): Promise<Record<string, string>> {
   root = root instanceof URL ? root : toFileUrl(resolve(root));
-  const { cacheSetting, cacheRoot, allowRemote, load } = options;
+  const { cacheSetting, cacheRoot, allowRemote, load, importMap, importMapBaseUrl } = options;
   let emitLoad = load;
   if (!emitLoad) {
     const cache = createCache({ root: cacheRoot, cacheSetting, allowRemote });

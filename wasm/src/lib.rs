@@ -1,9 +1,11 @@
 // Copyright 2018-2022 the Deno authors. All rights reserved. MIT license.
 
 use anyhow::anyhow;
+use deno_core::url::Url;
 use deno_emit::BundleOptions;
 use deno_emit::BundleType;
 use deno_emit::EmitOptions;
+use deno_emit::ImportMapConfig;
 use deno_emit::ImportsNotUsedAsValues;
 use deno_emit::LoadFuture;
 use deno_emit::Loader;
@@ -189,12 +191,25 @@ pub async fn transpile(
   root: String,
   load: js_sys::Function,
   _options: JsValue,
+  import_map_json_string: Option<String>,
+  import_map_base_url: Option<String>,
 ) -> Result<JsValue, JsValue> {
   let root = ModuleSpecifier::parse(&root)
     .map_err(|err| JsValue::from(js_sys::Error::new(&err.to_string())))?;
+
+  let import_map_config = if import_map_json_string.is_some() {
+    Some(ImportMapConfig {
+      base_url: Url::parse(&import_map_base_url.unwrap())
+        .map_err(|err| JsValue::from(js_sys::Error::new(&err.to_string())))?,
+      json_string: import_map_json_string.unwrap(),
+    })
+  } else {
+    None
+  };
+
   let mut loader = JsLoader::new(load);
 
-  let map = deno_emit::transpile(root, &mut loader)
+  let map = deno_emit::transpile(root, &mut loader, import_map_config)
     .await
     .map_err(|err| JsValue::from(js_sys::Error::new(&err.to_string())))?;
 

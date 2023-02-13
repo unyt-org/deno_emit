@@ -15,6 +15,7 @@ use deno_ast::EmitOptions;
 use deno_ast::MediaType;
 use deno_ast::ModuleSpecifier;
 use deno_ast::SourceTextInfo;
+use deno_core::url::Url;
 use std::collections::HashMap;
 use std::rc::Rc;
 
@@ -45,6 +46,11 @@ impl From<BundleType> for swc::bundler::ModuleType {
       BundleType::Module => Self::Es,
     }
   }
+}
+
+pub struct ImportMapConfig {
+  pub base_url: Url,
+  pub json_string: String,
 }
 
 pub struct BundleOptions {

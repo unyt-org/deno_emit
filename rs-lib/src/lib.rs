@@ -3,6 +3,7 @@
 mod bundle_hook;
 mod emit;
 mod text;
+mod resolver;
 
 use anyhow::Result;
 use deno_graph::BuildOptions;
@@ -10,12 +11,16 @@ use deno_graph::CapturingModuleAnalyzer;
 use deno_graph::ModuleGraph;
 use deno_graph::ParsedSourceStore;
 use deno_graph::ReferrerImports;
+use deno_graph::source::Resolver;
 use std::collections::HashMap;
+
+
 
 pub use emit::bundle_graph;
 pub use emit::BundleEmit;
 pub use emit::BundleOptions;
 pub use emit::BundleType;
+pub use emit::ImportMapConfig;
 
 pub use deno_ast::EmitOptions;
 pub use deno_ast::ImportsNotUsedAsValues;
@@ -51,7 +56,18 @@ pub async fn bundle(
 pub async fn transpile(
   root: ModuleSpecifier,
   loader: &mut dyn Loader,
+  import_map_config: Option<ImportMapConfig>,
 ) -> Result<HashMap<String, String>> {
+
+  // parse import map
+  let mut resolver:Option<&dyn Resolver> = None;
+  // if import_map_config.is_some() {
+  //   let config = &import_map_config.unwrap();
+  //   let import_map = parse_from_json(&config.base_url, &config.json_string)?.import_map;
+  //   let cli = &CliResolver::with_import_map(Arc::from(import_map));
+  //   resolver = Some(cli);
+  // }
+ 
   let analyzer = CapturingModuleAnalyzer::default();
   let mut graph = ModuleGraph::default();
   graph
@@ -60,6 +76,7 @@ pub async fn transpile(
       loader,
       BuildOptions {
         module_analyzer: Some(&analyzer),
+        resolver,
         ..Default::default()
       },
     )
