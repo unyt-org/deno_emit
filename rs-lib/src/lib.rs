@@ -51,6 +51,7 @@ pub async fn bundle(
 pub async fn transpile(
   root: ModuleSpecifier,
   loader: &mut dyn Loader,
+  emit_options: EmitOptions
 ) -> Result<HashMap<String, String>> {
   let analyzer = CapturingModuleAnalyzer::default();
   let mut graph = ModuleGraph::default();
@@ -71,8 +72,6 @@ pub async fn transpile(
 
   for module in graph.modules() {
     if let Some(parsed_source) = analyzer.get_parsed_source(&module.specifier) {
-      // TODO: add emit options
-      let emit_options = Default::default();
       let transpiled_source = parsed_source.transpile(&emit_options)?;
 
       map.insert(module.specifier.to_string(), transpiled_source.text);
