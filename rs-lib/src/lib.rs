@@ -94,7 +94,7 @@ pub async fn transpile(
 }
 
 
-pub fn transpile_isolated(content: String, file_path:String, emit_options:EmitOptions) -> Result<String> {
+pub fn transpile_isolated(content: String, emit_options:EmitOptions, file_path:String) -> Result<String> {
   let parser = &DefaultModuleParser {};
   let module_specifier = ModuleSpecifier::parse(&file_path).expect("Invalid url.");
   let parsed_source = parser.parse_module(&module_specifier, Arc::from(content), deno_ast::MediaType::from_specifier_and_headers(&module_specifier, None))?;

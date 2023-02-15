@@ -194,12 +194,15 @@ export async function emit(
  * 
  * @param content TypeScript or JavaScript module source code
  * @param options Options to use when transpiling
+ * @param file_path Optional file path, does not have to be an existing path - the transpiler behaves differently depending
+ * on the file extension (e.g., JSX is only supported with an .jsx or .tsx extension)
  * @returns A promise which resolves with a string containing the transpiled JavaScript code
  */
 export async function transpileIsolated(
   content: string,
   options: CompilerOptions = {},
+  file_path?: string|URL
 ): Promise<string|undefined> {
   const { transpile_isolated } = await instantiate();
-  return transpile_isolated(content, options);
+  return transpile_isolated(content, options, file_path ? file_path.toString() : undefined);
 }
