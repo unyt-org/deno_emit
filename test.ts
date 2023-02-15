@@ -5,7 +5,7 @@ import {
   assertStringIncludes,
 } from "https://deno.land/std@0.140.0/testing/asserts.ts";
 import { join } from "https://deno.land/std@0.140.0/path/mod.ts";
-import { bundle, emit, transpileIsolated } from "./mod.ts";
+import { bundle, transpile, transpileIsolated } from "./mod.ts";
 
 Deno.test({
   name: "bundle - remote",
@@ -94,7 +94,7 @@ Deno.test({
 Deno.test({
   name: "transpile - remote",
   async fn() {
-    const result = await emit(
+    const result = await transpile(
       new URL(
         "https://deno.land/std@0.140.0/examples/chat/server.ts",
       ),
@@ -111,7 +111,7 @@ Deno.test({
 Deno.test({
   name: "transpile - url",
   async fn() {
-    const result = await emit(
+    const result = await transpile(
       new URL(
         "https://deno.land/std@0.140.0/examples/chat/server.ts",
       ),
@@ -128,7 +128,7 @@ Deno.test({
 Deno.test({
   name: "transpile - relative",
   async fn() {
-    const result = await emit("./testdata/mod.ts");
+    const result = await transpile("./testdata/mod.ts");
 
     console.log(result);
     assertEquals(Object.keys(result).length, 1);
@@ -141,7 +141,7 @@ Deno.test({
 Deno.test({
   name: "transpile - absolute",
   async fn() {
-    const result = await emit(join(Deno.cwd(), "testdata", "mod.ts"));
+    const result = await transpile(join(Deno.cwd(), "testdata", "mod.ts"));
 
     console.log(result);
     assertEquals(Object.keys(result).length, 1);
@@ -154,7 +154,7 @@ Deno.test({
 Deno.test({
   name: "transpile - source",
   async fn() {
-    const result = await emit(new URL("file:///src.ts"), {
+    const result = await transpile(new URL("file:///src.ts"), {
       async load(specifier) {
         if (specifier !== "file:///src.ts") return undefined;
         const content = await Deno.readTextFile(
@@ -176,10 +176,31 @@ Deno.test({
 Deno.test({
   name: "transpile isolated module",
   async fn() {
-    const content = await Deno.readTextFile("./testdata/mod.ts");
-    const result = await transpileIsolated(content);
+    const result = await transpileIsolated("./testdata/mod.ts");
     console.log(result);
     assert(result);
     assertStringIncludes(result, "export default function hello()");
+  },
+});
+
+
+Deno.test({
+  name: "transpile isolated tsx module",
+  async fn() {
+    const result = await transpileIsolated("./testdata/mod.tsx");
+    console.log(result);
+    assert(result);
+    assertStringIncludes(result, 'React.createElement("div", null)');
+  },
+});
+
+
+Deno.test({
+  name: "transpile isolated tsx automatic module",
+  async fn() {
+    const result = await transpileIsolated("./testdata/mod.tsx", {jsxImportSource:"x", jsxAutomatic:true});
+    console.log(result);
+    assert(result);
+    assertStringIncludes(result, 'import { jsx as _jsx } from "x/jsx-runtime');
   },
 });

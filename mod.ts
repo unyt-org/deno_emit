@@ -56,7 +56,7 @@ export interface BundleOptions {
   /** The setting to use when loading sources from the Deno cache. */
   cacheSetting?: CacheSetting;
   /** Compiler options which can be set when bundling. */
-  compilerOptions?: CompilerOptions;
+  compilerOptions?: EmitOptions;
   imports?: Record<string, string[]>;
   /** Override the default loading mechanism with a custom loader. This can
    * provide a way to use "in-memory" resources instead of fetching them
@@ -68,7 +68,7 @@ export interface BundleOptions {
 }
 
 /** Options which can be set when using the {@linkcode transpile} function. */
-export interface EmitOptions {
+export interface TranspileOptions {
   /** Allow remote modules to be loaded or read from the cache. */
   allowRemote?: boolean;
   /** The cache root to use, overriding the default inferred `DENO_DIR`. */
@@ -76,7 +76,7 @@ export interface EmitOptions {
   /** The setting to use when loading sources from the Deno cache. */
   cacheSetting?: CacheSetting;
   /** Compiler options which can be set when transpiling. */
-  compilerOptions?: CompilerOptions;
+  compilerOptions?: EmitOptions;
   //imports: Record<string, string[]>;
   /** Override the default loading mechanism with a custom loader. This can
    * provide a way to use "in-memory" resources instead of fetching them
@@ -85,7 +85,7 @@ export interface EmitOptions {
   //type?: "module" | "classic";
 }
 
-export interface CompilerOptions {
+export interface EmitOptions {
   checkJs?: boolean;
   /** Determines if reflection meta data is emitted for legacy decorators or
    * not.  Defaults to `false`. */
@@ -103,9 +103,13 @@ export interface CompilerOptions {
    *
    * This is often useful in the same cases as `inlineSourceMap`. */
   inlineSources?: boolean;
+  /** Should import declarations be transformed to variable declarations using
+   * a dynamic import. This is useful for import & export declaration support
+   * n script contexts such as the Deno REPL.  Defaults to `false`. */
+  varDeclImports?: boolean;
   /** Controls how JSX constructs are emitted in JavaScript files. This only
    * affects output of JS files that started in `.jsx` or `.tsx` files. */
-  jsx?: "jsx" | "preserve";
+  jsx?: "preserve" | "react-jsx" | "react-jsxdev" | "react-native"  | "react";
   /** Changes the function called in `.js` files when compiling JSX Elements
    * using the classic JSX runtime. The most common change is to use `"h"` or
    * `"preact.h"`. */
@@ -113,6 +117,17 @@ export interface CompilerOptions {
   /** Specify the JSX fragment factory function to use when targeting react JSX
    * emit with jsxFactory compiler option is specified, e.g. `Fragment`. */
   jsxFragmentFactory?: string;
+  /** When set, the transpiler uses implicit JSX import sources */
+  jsxAutomatic?: boolean;
+  /** If JSX is automatic, if it is in development mode, meaning that it should
+   * import `jsx-dev-runtime` and transform JSX using `jsxDEV` import from the
+   * SX import source as well as provide additional debug information to the
+   * JSX factory.
+   */
+  jsxDevelopment?: boolean;
+  /**  When transforming JSX, what value should be used for the JSX factory.
+   * Defaults to `React.createElement`. */
+  jsxImportSource?: string;
   /** Enables the generation of sourcemap files. */
   sourceMap?: boolean;
 }
@@ -175,7 +190,7 @@ export async function bundle(
  */
 export async function transpile(
   root: string | URL,
-  options: EmitOptions = {},
+  options: TranspileOptions = {},
 ): Promise<Record<string, string>> {
   root = root instanceof URL ? root : toFileUrl(resolve(root));
   const { cacheSetting, cacheRoot, allowRemote, load, compilerOptions } = options;
@@ -201,10 +216,11 @@ export async function transpile(
  */
 export async function transpileIsolated(
   path: string|URL,
-  options: CompilerOptions = {},
+  options: EmitOptions = {},
   content?: string
 ): Promise<string> {
+  path = path instanceof URL ? path : toFileUrl(resolve(path));
   const { transpile_isolated } = await instantiate();
   if (content == undefined) content = await Deno.readTextFile(path);
-  return transpile_isolated(content, options, path.toString());
+  return transpile_isolated(path.toString(), options, content);
 }

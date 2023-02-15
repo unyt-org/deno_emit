@@ -17,19 +17,23 @@ use wasm_bindgen::prelude::*;
 #[derive(serde::Deserialize)]
 #[serde(default, rename_all = "camelCase")]
 #[derive(Debug)]
-pub struct CompilerOptions {
+pub struct NewEmitOptions {
   pub check_js: bool,
   pub emit_decorator_metadata: bool,
   pub imports_not_used_as_values: String,
   pub inline_source_map: bool,
   pub inline_sources: bool,
+  pub var_decl_imports: bool,
   pub jsx: String,
   pub jsx_factory: String,
   pub jsx_fragment_factory: String,
+  pub jsx_automatic: bool,
+  pub jsx_development: bool,
+  pub jsx_import_source: Option<String>,
   pub source_map: bool,
 }
 
-impl Default for CompilerOptions {
+impl Default for NewEmitOptions {
   fn default() -> Self {
     Self {
       check_js: false,
@@ -37,16 +41,20 @@ impl Default for CompilerOptions {
       imports_not_used_as_values: "remove".to_string(),
       inline_source_map: true,
       inline_sources: true,
+      var_decl_imports: false,
       jsx: "react".to_string(),
       jsx_factory: "React.createElement".to_string(),
       jsx_fragment_factory: "React.Fragment".to_string(),
+      jsx_automatic: false,
+      jsx_development: false,
+      jsx_import_source: None,
       source_map: false,
     }
   }
 }
 
-impl From<CompilerOptions> for EmitOptions {
-  fn from(options: CompilerOptions) -> Self {
+impl From<NewEmitOptions> for EmitOptions {
+  fn from(options: NewEmitOptions) -> Self {
     let imports_not_used_as_values =
       match options.imports_not_used_as_values.as_str() {
         "preserve" => ImportsNotUsedAsValues::Preserve,
@@ -61,12 +69,12 @@ impl From<CompilerOptions> for EmitOptions {
       inline_sources: options.inline_sources,
       jsx_factory: options.jsx_factory,
       jsx_fragment_factory: options.jsx_fragment_factory,
-      transform_jsx: options.jsx == "react",
-      var_decl_imports: false,
+      transform_jsx: options.jsx == "react" || options.jsx == "react-jsx" || options.jsx == "react-jsxdev",
+      var_decl_imports: options.var_decl_imports,
       source_map: options.source_map,
-      jsx_automatic: false,
-      jsx_development: false,
-      jsx_import_source: None,
+      jsx_automatic: options.jsx_automatic,
+      jsx_development: options.jsx_development,
+      jsx_import_source: options.jsx_import_source,
     }
   }
 }
@@ -133,7 +141,7 @@ pub async fn bundle(
   let maybe_imports_map: Option<HashMap<String, Vec<String>>> = maybe_imports
     .into_serde()
     .map_err(|err| JsValue::from(js_sys::Error::new(&err.to_string())))?;
-  let maybe_compiler_options: Option<CompilerOptions> = maybe_compiler_options
+  let maybe_compiler_options: Option<NewEmitOptions> = maybe_compiler_options
     .into_serde()
     .map_err(|err| JsValue::from(js_sys::Error::new(&err.to_string())))?;
   let root = ModuleSpecifier::parse(&root)
@@ -194,7 +202,7 @@ pub async fn transpile(
     .map_err(|err| JsValue::from(js_sys::Error::new(&err.to_string())))?;
   let mut loader = JsLoader::new(load);
 
-  let maybe_compiler_options: Option<CompilerOptions> = maybe_compiler_options
+  let maybe_compiler_options: Option<NewEmitOptions> = maybe_compiler_options
     .into_serde()
     .map_err(|err| JsValue::from(js_sys::Error::new(&err.to_string())))?;
   let emit_options: EmitOptions = maybe_compiler_options
@@ -213,11 +221,11 @@ pub async fn transpile(
 #[wasm_bindgen]
 pub fn transpile_isolated(
   file_path: String,
-  content: String,
   maybe_compiler_options: JsValue,
+  content: String,
 ) -> Result<String, JsValue> {
 
-  let maybe_compiler_options: Option<CompilerOptions> = maybe_compiler_options
+  let maybe_compiler_options: Option<NewEmitOptions> = maybe_compiler_options
     .into_serde()
     .map_err(|err| JsValue::from(js_sys::Error::new(&err.to_string())))?;
 
