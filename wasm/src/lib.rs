@@ -212,9 +212,9 @@ pub async fn transpile(
 
 #[wasm_bindgen]
 pub fn transpile_isolated(
+  file_path: String,
   content: String,
   maybe_compiler_options: JsValue,
-  file_path: Option<String>
 ) -> Result<String, JsValue> {
 
   let maybe_compiler_options: Option<CompilerOptions> = maybe_compiler_options
@@ -225,6 +225,6 @@ pub fn transpile_isolated(
     .map(|co| co.into())
     .unwrap_or_default();
 
-  let res = deno_emit::transpile_isolated(content, emit_options, file_path.unwrap_or("file:///mod.ts".to_string())).map_err(|err| JsValue::from(js_sys::Error::new(&err.to_string())))?;
+  let res = deno_emit::transpile_isolated(content, emit_options, file_path).map_err(|err| JsValue::from(js_sys::Error::new(&err.to_string())))?;
   return Ok(res);
 }

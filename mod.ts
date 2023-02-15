@@ -67,7 +67,7 @@ export interface BundleOptions {
   type?: "module" | "classic";
 }
 
-/** Options which can be set when using the {@linkcode emit} function. */
+/** Options which can be set when using the {@linkcode transpile} function. */
 export interface EmitOptions {
   /** Allow remote modules to be loaded or read from the cache. */
   allowRemote?: boolean;
@@ -173,7 +173,7 @@ export async function bundle(
  *          where the key is the emitted files name and the value is the
  *          source for the file.
  */
-export async function emit(
+export async function transpile(
   root: string | URL,
   options: EmitOptions = {},
 ): Promise<Record<string, string>> {
@@ -192,17 +192,19 @@ export async function emit(
  * which resolves with the transpiled JavaScript code.
  * This treats the module source code as an isolated module, ignoring imports.
  * 
- * @param content TypeScript or JavaScript module source code
- * @param options Options to use when transpiling
- * @param file_path Optional file path, does not have to be an existing path - the transpiler behaves differently depending
+ * @param path File path, does not have to be an existing path - the transpiler behaves differently depending
  * on the file extension (e.g., JSX is only supported with an .jsx or .tsx extension)
+ * @param options Options to use when transpiling
+ * @param content Optional TypeScript or JavaScript module source code. If not provided, the
+ * source code is loaded from the provided path
  * @returns A promise which resolves with a string containing the transpiled JavaScript code
  */
 export async function transpileIsolated(
-  content: string,
+  path: string|URL,
   options: CompilerOptions = {},
-  file_path?: string|URL
-): Promise<string|undefined> {
+  content?: string
+): Promise<string> {
   const { transpile_isolated } = await instantiate();
-  return transpile_isolated(content, options, file_path ? file_path.toString() : undefined);
+  if (content == undefined) content = await Deno.readTextFile(path);
+  return transpile_isolated(content, options, path.toString());
 }

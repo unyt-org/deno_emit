@@ -33,17 +33,31 @@ and flexibility.
 
 ## Transpiling
 
-Take individual modules that are JavaScript or TypeScript and emit them in a
+Take a JavaScript or TypeScript module and emit the module and all imported modules in a
 transpiled fashion. An example of taking some TypeScript and transpiling to
 JavaScript:
 
 ```ts
-import { emit } from "https://deno.land/x/emit/mod.ts";
+import { transpile } from "https://deno.land/x/emit/mod.ts";
 
 const url = new URL("./testdata/mod.ts", import.meta.url);
-const result = await emit(url);
+const result = await transpile(url);
 
 const code = result[url.href];
+console.log(code.includes("export default function hello()"));
+```
+
+## Transpiling isolated modules
+
+Similar to `transpile`, but does not recursively resolve module imports. Only the provided 
+JavaScript or TypeScript module is transpiled.
+
+```ts
+import { transpileIsolated } from "https://deno.land/x/emit/mod.ts";
+
+const url = new URL("./testdata/mod.ts", import.meta.url);
+const code = await transpileIsolated(url);
+
 console.log(code.includes("export default function hello()"));
 ```
 
