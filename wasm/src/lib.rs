@@ -17,7 +17,7 @@ use wasm_bindgen::prelude::*;
 #[derive(serde::Deserialize)]
 #[serde(default, rename_all = "camelCase")]
 #[derive(Debug)]
-pub struct NewEmitOptions {
+pub struct CompilerOptions {
   pub check_js: bool,
   pub emit_decorator_metadata: bool,
   pub imports_not_used_as_values: String,
@@ -33,7 +33,7 @@ pub struct NewEmitOptions {
   pub source_map: bool,
 }
 
-impl Default for NewEmitOptions {
+impl Default for CompilerOptions {
   fn default() -> Self {
     Self {
       check_js: false,
@@ -53,8 +53,8 @@ impl Default for NewEmitOptions {
   }
 }
 
-impl From<NewEmitOptions> for EmitOptions {
-  fn from(options: NewEmitOptions) -> Self {
+impl From<CompilerOptions> for EmitOptions {
+  fn from(options: CompilerOptions) -> Self {
     let imports_not_used_as_values =
       match options.imports_not_used_as_values.as_str() {
         "preserve" => ImportsNotUsedAsValues::Preserve,
@@ -141,7 +141,7 @@ pub async fn bundle(
   let maybe_imports_map: Option<HashMap<String, Vec<String>>> = maybe_imports
     .into_serde()
     .map_err(|err| JsValue::from(js_sys::Error::new(&err.to_string())))?;
-  let maybe_compiler_options: Option<NewEmitOptions> = maybe_compiler_options
+  let maybe_compiler_options: Option<CompilerOptions> = maybe_compiler_options
     .into_serde()
     .map_err(|err| JsValue::from(js_sys::Error::new(&err.to_string())))?;
   let root = ModuleSpecifier::parse(&root)
@@ -202,7 +202,7 @@ pub async fn transpile(
     .map_err(|err| JsValue::from(js_sys::Error::new(&err.to_string())))?;
   let mut loader = JsLoader::new(load);
 
-  let maybe_compiler_options: Option<NewEmitOptions> = maybe_compiler_options
+  let maybe_compiler_options: Option<CompilerOptions> = maybe_compiler_options
     .into_serde()
     .map_err(|err| JsValue::from(js_sys::Error::new(&err.to_string())))?;
   let emit_options: EmitOptions = maybe_compiler_options
@@ -225,7 +225,7 @@ pub fn transpile_isolated(
   content: String,
 ) -> Result<String, JsValue> {
 
-  let maybe_compiler_options: Option<NewEmitOptions> = maybe_compiler_options
+  let maybe_compiler_options: Option<CompilerOptions> = maybe_compiler_options
     .into_serde()
     .map_err(|err| JsValue::from(js_sys::Error::new(&err.to_string())))?;
 

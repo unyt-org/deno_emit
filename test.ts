@@ -139,6 +139,17 @@ Deno.test({
 });
 
 Deno.test({
+  name: "transpile - no inline source map",
+  async fn() {
+    const result = await transpile("./testdata/mod.ts", {compilerOptions: {sourceMap:false, inlineSourceMap: false}});
+
+    const code = result[Object.keys(result)[0]];
+    assert(code);
+    assert(!code.includes("sourceMappingURL="));
+  },
+});
+
+Deno.test({
   name: "transpile - absolute",
   async fn() {
     const result = await transpile(join(Deno.cwd(), "testdata", "mod.ts"));
@@ -202,5 +213,16 @@ Deno.test({
     console.log(result);
     assert(result);
     assertStringIncludes(result, 'import { jsx as _jsx } from "x/jsx-runtime');
+  },
+});
+
+
+Deno.test({
+  name: "transpile isolated tsx module with custom content",
+  async fn() {
+    const result = await transpileIsolated("file://src.ts", {}, 'export default function helloSrc() {}');
+    console.log(result);
+    assert(result);
+    assertStringIncludes(result, 'export default function helloSrc() {}');
   },
 });
