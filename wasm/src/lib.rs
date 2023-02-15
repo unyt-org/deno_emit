@@ -188,13 +188,20 @@ pub async fn bundle(
 pub async fn transpile(
   root: String,
   load: js_sys::Function,
-  _options: JsValue,
+  maybe_compiler_options: JsValue,
 ) -> Result<JsValue, JsValue> {
   let root = ModuleSpecifier::parse(&root)
     .map_err(|err| JsValue::from(js_sys::Error::new(&err.to_string())))?;
   let mut loader = JsLoader::new(load);
 
-  let map = deno_emit::transpile(root, &mut loader)
+  let maybe_compiler_options: Option<CompilerOptions> = maybe_compiler_options
+    .into_serde()
+    .map_err(|err| JsValue::from(js_sys::Error::new(&err.to_string())))?;
+  let emit_options: EmitOptions = maybe_compiler_options
+    .map(|co| co.into())
+    .unwrap_or_default();
+
+  let map = deno_emit::transpile(root, &mut loader, emit_options)
     .await
     .map_err(|err| JsValue::from(js_sys::Error::new(&err.to_string())))?;
 
