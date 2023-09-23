@@ -40,8 +40,8 @@ console.log(code);
 
 ## Transpiling isolated modules
 
-Similar to `transpile`, but does not recursively resolve module imports. Only the provided 
-JavaScript or TypeScript module is transpiled.
+Similar to `transpile`, but does not recursively resolve module imports. Only
+the provided JavaScript or TypeScript module is transpiled.
 
 ```ts
 import { transpileIsolated } from "https://deno.land/x/emit/mod.ts";
