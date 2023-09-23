@@ -4,7 +4,7 @@ import {
   assertRejects,
 } from "https://deno.land/std@0.182.0/testing/asserts.ts";
 import { toFileUrl } from "https://deno.land/std@0.182.0/path/mod.ts";
-import { transpile } from "../js/mod.ts";
+import { transpile, transpileIsolated } from "../js/mod.ts";
 import { resolveFixture } from "./utils.ts";
 
 type ExpectedOutputFile =
@@ -76,7 +76,6 @@ async function testJSXTransform(
 
         const filePath = resolveFixture(`jsx/${testCase.expectedOutput}`);
         const expectedContent = await Deno.readTextFile(filePath);
-        Deno.writeTextFileSync("./gen.js", generatedContent);
 
         assertEquals(
           generatedContent,
@@ -99,6 +98,17 @@ Deno.test({
 
           const result = await transpile(filePath, { compilerOptions });
           const code = result.get(fileUrl);
+          assertExists(code);
+          return code;
+        });
+      }
+    });
+
+    await t.step("transpileIsolated", async (t) => {
+      for (const testCase of cases) {
+        await testJSXTransform(t, testCase, async (compilerOptions) => {
+          const filePath = resolveFixture("jsx/in.tsx");
+          const code = await transpileIsolated(filePath, compilerOptions);
           assertExists(code);
           return code;
         });
