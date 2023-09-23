@@ -37,3 +37,17 @@ const result = await bundle(
 const { code } = result;
 console.log(code);
 ```
+
+## Transpiling isolated modules
+
+Similar to `transpile`, but does not recursively resolve module imports. Only the provided 
+JavaScript or TypeScript module is transpiled.
+
+```ts
+import { transpileIsolated } from "https://deno.land/x/emit/mod.ts";
+
+const url = new URL("./testdata/mod.ts", import.meta.url);
+const code = await transpileIsolated(url);
+
+console.log(code.includes("export default function hello()"));
+```

@@ -239,6 +239,29 @@ export async function transpile(
   );
 }
 
+
+/** Transpile TypeScript (or JavaScript) source code directly into JavaScript code, returning a promise
+ * which resolves with the transpiled JavaScript code.
+ * This treats the module source code as an isolated module, ignoring imports.
+ * 
+ * @param path File path, does not have to be an existing path - the transpiler behaves differently depending
+ * on the file extension (e.g., JSX is only supported with an .jsx or .tsx extension)
+ * @param options Options to use when transpiling
+ * @param content Optional TypeScript or JavaScript module source code. If not provided, the
+ * source code is loaded from the provided path
+ * @returns A promise which resolves with a string containing the transpiled JavaScript code
+ */
+export async function transpileIsolated(
+  path: string|URL,
+  options: CompilerOptions = {},
+  content?: string
+): Promise<string> {
+  path = locationToUrl(path)
+  const { transpile_isolated } = await instantiate();
+  if (content == undefined) content = await Deno.readTextFile(path);
+  return transpile_isolated(path.toString(), options, content);
+}
+
 function checkCompilerOptions(
   compilerOptions: CompilerOptions | undefined,
 ): void {
