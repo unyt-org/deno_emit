@@ -5,6 +5,7 @@ mod emit;
 mod text;
 
 use anyhow::Result;
+use deno_graph::ModuleParser;
 use deno_graph::source::LoadResponse;
 use deno_graph::BuildOptions;
 use deno_graph::CapturingModuleAnalyzer;
@@ -12,7 +13,9 @@ use deno_graph::GraphKind;
 use deno_graph::ModuleGraph;
 use deno_graph::ParsedSourceStore;
 use import_map::ImportMap;
+use deno_graph::DefaultModuleParser;
 use std::collections::HashMap;
+use std::sync::Arc;
 use url::Url;
 
 pub use emit::bundle_graph;
@@ -99,6 +102,16 @@ pub async fn transpile(
 
   Ok(map)
 }
+
+pub fn transpile_isolated(content: String, emit_options:EmitOptions, file_path:String) -> Result<String> {
+  let parser = &DefaultModuleParser::new();
+  let module_specifier = ModuleSpecifier::parse(&file_path).expect("Invalid url.");
+  let parsed_source = parser.parse_module(&module_specifier, Arc::from(content), deno_ast::MediaType::from_specifier_and_headers(&module_specifier, None))?;
+
+  let transpiled_source = parsed_source.transpile(&emit_options)?;
+  return Ok(transpiled_source.text);
+}
+
 
 #[derive(Debug)]
 pub enum ImportMapInput {

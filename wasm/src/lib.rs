@@ -258,3 +258,24 @@ pub async fn transpile(
   serde_wasm_bindgen::to_value(&map)
     .map_err(|err| JsValue::from(js_sys::Error::new(&err.to_string())))
 }
+
+
+
+#[wasm_bindgen]
+pub fn transpile_isolated(
+  file_path: String,
+  maybe_compiler_options: JsValue,
+  content: String,
+) -> Result<String, JsValue> {
+
+  let compiler_options: CompilerOptions = serde_wasm_bindgen::from_value::<
+    Option<CompilerOptions>,
+  >(maybe_compiler_options)
+  .map_err(|err| JsValue::from(js_sys::Error::new(&err.to_string())))?
+  .unwrap_or_default();
+
+  let emit_options: EmitOptions = compiler_options.into();
+
+  let res = deno_emit::transpile_isolated(content, emit_options, file_path).map_err(|err| JsValue::from(js_sys::Error::new(&err.to_string())))?;
+  return Ok(res);
+}
