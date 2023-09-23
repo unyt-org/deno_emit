@@ -245,10 +245,10 @@ export async function transpileIsolated(
   options: CompilerOptions = {},
   content?: string
 ): Promise<string> {
-  path = locationToUrl(path).toString()
+  path = locationToUrl(path)
   const { transpile_isolated } = await instantiate();
   if (content == undefined) content = await Deno.readTextFile(path);
-  return transpile_isolated(path, options, content);
+  return transpile_isolated(path.toString(), options, content);
 }
 
 function checkCompilerOptions(
